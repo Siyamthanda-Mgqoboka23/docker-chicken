@@ -25,7 +25,7 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
 
 CMD /bin/bash -c "/opt/mssql/bin/sqlservr & \
     sleep 25 && \
-    if/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '$MSSQL_SA_PASSWORD' -C -Q 'SELECT name FROM sys.databases WHERE name = \"Farm\"' | grep -q Farm; then \
+    if /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '$MSSQL_SA_PASSWORD' -C -Q 'SELECT name FROM sys.databases WHERE name = \"Farm\"' | grep -q Farm; then \
         echo \"Database already exists. Skipping initialization.\"; \
     else \
         echo \"Initializing database...\"; \
