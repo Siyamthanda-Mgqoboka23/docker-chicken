@@ -7,12 +7,12 @@ namespace ChickenAPI.Controllers
 
     public class EggController : ControllerBase
     {
-      [HttpGet("/GetMeEggs")]
+        [HttpGet("/GetMeEggs")]
         public ActionResult GetEggs()
         {
             return Ok("You got some eggs!");
         }
 
-        
+
     }
 }

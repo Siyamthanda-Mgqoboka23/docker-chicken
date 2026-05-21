@@ -60,44 +60,45 @@ jobs:
   integration-testing:
     name: 🧪 System Integration Verification
     runs-on: ubuntu-latest
-    needs: compile-and-build # Only starts after Docker builds successfully finalize
+    needs: compile-and-build
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '10.0.x'
-        cache: true
-        cache-dependency-path: '**/*.csproj'
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
 
-    - name: Build and Launch Application Mesh
-      run: docker compose up --build -d
+      - name: Build and Launch Application Mesh
+        run: docker compose up --build -d
 
-    - name: Grace Period for Database Boot
-      run: |
-        echo "Giving Microsoft SQL Server 25 seconds to complete table setups..."
-        sleep 25
-      
-    - name: Wait for API Readiness
-      run: |
-          echo "Waiting for ChickenAPI to wake up at http://localhost:8080..."
-          timeout 60s sh -c 'until curl -sSf http://localhost:8080/GetMeEggs > /dev/null; do sleep 2; done'
+      - name: Grace Period for Database Boot
+        run: |
+          echo "Giving Microsoft SQL Server 25 seconds to complete table setups..."
+          sleep 25
+
+      - name: Wait for API Readiness
+        run: |
+          echo "Waiting for ChickenAPI to wake up at http://localhost:5231..."
+          timeout 60s sh -c 'until curl -sSf http://localhost:5231/GetMeEggs > /dev/null; do sleep 2; done'
           echo "ChickenAPI is up and running!"
-    - name: Integration Step 1 - Seed Data via API
-      run: |
+
+      - name: Integration Step 1 - Seed Data via API
+        run: |
           echo "Posting a new chicken payload to the database..."
-          curl -X POST http://localhost:8080/api/Chicken \
+          curl -X POST http://localhost:5231/api/Chicken \
             -H "Content-Type: application/json" \
             -d '{"name": "Cluck Norris", "breed": "Rhode Island Red"}' \
             --fail --verbose
 
-    - name: Integration Step 2 - Verify Front-End MVC Data Rendering
-      run: |
-          echo "Quering the MVC web application for the port 80..."
-          MVC_RESPONSE=$(curl -s http://localhost:80)
+      - name: Integration Step 2 - Verify Front-End MVC Data Rendering
+        run: |
+          echo "Querying the MVC web application on port 5178..."
+          MVC_RESPONSE=$(curl -s http://localhost:5178)
 
           echo "Asserting that the MVC response contains the expected chicken name..."
           if echo "$MVC_RESPONSE" | grep -q "Cluck Norris"; then
@@ -107,26 +108,13 @@ jobs:
             exit 1
           fi
 
-          -name: Tear Down Application Mesh and Logs
-          if: always()
-          run: |
-          docker compose logs api-service > api-container-debug.log
-          docker compose logs chick-db-service > db-container-debug.log
-          docker compose logs mvc-service > mvc-container-debug.log
+      - name: Tear Down Application Mesh and Logs
+        if: always()
+        run: |
+          docker compose logs chickenapi > api-container-debug.log
+          docker compose logs chicken-db-service > db-container-debug.log
+          docker compose logs chickenmvc > mvc-container-debug.log
           docker compose down --volumes
-
-          #JOB 4: Automated continuos  delivery task gated behind previous validation approvals
-          cd-deployment:
-            name: 🚀 Production Cloud development
-            runs-on: ubuntu-latest
-            needs: integration-testing
-            if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-            environment: Production
-         
-            steps:
-              - name: Execute Server Infrastructure Sync
-                run: |
-                  echo "All automated tests passed cleanly. Initiating production handshakke script..."
                 
 
            

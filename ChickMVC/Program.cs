@@ -8,7 +8,7 @@ namespace ChickMVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-             builder.Services.AddHttpClient();
+            builder.Services.AddHttpClient();
             var app = builder.Build();
 
             if (!app.Environment.IsDevelopment())
@@ -17,7 +17,7 @@ namespace ChickMVC
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
-       
+
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChickenAPI.Controllers
-{ 
+{
     [Route("api/[controller]")]
     [ApiController]
- 
+
     public class ChickenController : ControllerBase
     {
         private readonly FarmDbContext _context;
@@ -27,9 +27,9 @@ namespace ChickenAPI.Controllers
             var chicken = await _context.Chickens.FindAsync(id);
 
             if (chicken == null)
-            
+
                 return NotFound();
-            
+
 
             return chicken;
         }
