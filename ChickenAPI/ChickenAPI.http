@@ -1,4 +1,4 @@
-@ChickenAPI_HostAddress = http://localhost:5075
+@ChickenAPI_HostAddress = http://localhost:5231
 
 GET {{ChickenAPI_HostAddress}}/weatherforecast/
 Accept: application/json

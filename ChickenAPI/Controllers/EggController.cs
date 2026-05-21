@@ -2,17 +2,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChickenAPI.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-
+    [ApiController]
     public class EggController : ControllerBase
     {
-        [HttpGet("/GetMeEggs")]
-        public ActionResult GetEggs()
+        [HttpGet("/GetMeEgggs")]
+        public ActionResult<string> GetEggs()
         {
-            return Ok("You got some eggs!");
+            return "Here are your eggs!";
         }
-
-
     }
 }

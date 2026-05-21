@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/azure-sql-edge:latest
+
+ENV ACCEPT_EULA=Y
+ENV MSSQL_SA_PASSWORD=Password1!
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+    CMD /bin/bash -c "pgrep sqlservr >/dev/null" || exit 1

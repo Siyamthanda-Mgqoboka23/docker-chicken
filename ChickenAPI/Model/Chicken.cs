@@ -10,19 +10,17 @@ namespace ChickenAPI.Model
 
         [Required]
         [MaxLength(50)]
-        public required string Name { get; set; }
-
-
+        public string? Name { get; set; }
 
         [Required]
-        [MaxLength(50)]
-        public required string Breed { get; set; }
-
         [Range(0, 50)]
         public int Age { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string? Breed { get; set; }
 
         [Column(TypeName = "decimal(5,2)")]
-        [Range(0, 100)]//eggs per day
+        [Range(0, 100)]
         public decimal EggProduction { get; set; }
 
         [Required]

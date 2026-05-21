@@ -3,7 +3,7 @@ services:
     container_name: chicken-db
     build:
       context: .
-      dockerfile: ChickDB/Dockerfile
+      dockerfile: ChickenDB/DockerFile
     ports:
       - "1433:1433"
     volumes:
@@ -18,9 +18,9 @@ services:
       dockerfile: ChickenAPI/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      SQL_CONNECTION_STRING: "Server=chick-db;Database=Farm;Trusted_Connection=false;MultipleActiveResultSets=true;Encrypt=false;user Id=sa;password=Password1!"
+      SQL_CONNECTION_STRING: "Server=chicken-db;Database=Farm;Trusted_Connection=false;MultipleActiveResultSets=true;Encrypt=false;user Id=sa;password=Password1!"
     ports:
-      - "8080:8080"
+      - "5231:8080"
     depends_on:
       - chicken-db-service
     networks:
@@ -30,13 +30,15 @@ services:
     container_name: chickenmvc-local
     build:
       context: .
-      dockerfile: ChickMVC/Dockerfile
+      dockerfile: ChickenMVC/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ChickenApi__BaseUrl: "http://chickenapi:8080"
+      CHICKEN_API_BASE_URL: "http://chickenapi:8080"
     depends_on:
       - chickenapi
     ports:
-      - "8080:8080"
+      - "5178:8080"
     networks:
       - chick-network
 
@@ -46,3 +48,4 @@ networks:
 
 volumes:
   db_data:
+
