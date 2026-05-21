@@ -1,18 +1,132 @@
-name: Docker Image CI
+name: Advanced CI/CD Integration Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
-
-  build:
-
+  # JOB 1: Validates code layout, syntax formatting, and compilation rules early
+  code-quality:
+    name: 🛡️ Code Quality & Formatting
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+
+      # FIX: Executable steps that use the configured cache layout to validate syntax stability
+      - name: Verify Code Formatting
+        run: dotnet format --verify-no-changes --severity warn
+
+      - name: Static Code Analysis
+        run: dotnet build --configuration Release /warnaserror
+
+  # JOB 2: Compiles the source files inside target Docker configurations
+  compile-and-build:
+    name: 🐳 Docker Build & Package
+    runs-on: ubuntu-latest
+    needs: code-quality
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+
+      - name: Build Application Containers
+        run: docker compose build
+
+  # JOB 3: Spins up container layout and evaluates cross-dependency integrations
+  integration-testing:
+    name: 🧪 System Integration Verification
+    runs-on: ubuntu-latest
+    needs: compile-and-build # Only starts after Docker builds successfully finalize
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+        cache: true
+        cache-dependency-path: '**/*.csproj'
+
+    - name: Build and Launch Application Mesh
+      run: docker compose up --build -d
+
+    - name: Grace Period for Database Boot
+      run: |
+        echo "Giving Microsoft SQL Server 25 seconds to complete table setups..."
+        sleep 25
+      
+    - name: Wait for API Readiness
+      run: |
+          echo "Waiting for ChickenAPI to wake up at http://localhost:8080..."
+          timeout 60s sh -c 'until curl -sSf http://localhost:8080/GetMeEggs > /dev/null; do sleep 2; done'
+          echo "ChickenAPI is up and running!"
+    - name: Integration Step 1 - Seed Data via API
+      run: |
+          echo "Posting a new chicken payload to the database..."
+          curl -X POST http://localhost:8080/api/Chicken \
+            -H "Content-Type: application/json" \
+            -d '{"name": "Cluck Norris", "breed": "Rhode Island Red"}' \
+            --fail --verbose
+
+    - name: Integration Step 2 - Verify Front-End MVC Data Rendering
+      run: |
+          echo "Quering the MVC web application for the port 80..."
+          MVC_RESPONSE=$(curl -s http://localhost:80)
+
+          echo "Asserting that the MVC response contains the expected chicken name..."
+          if echo "$MVC_RESPONSE" | grep -q "Cluck Norris"; then
+            echo "Success: MVC interface successfully rendered the expected chicken!"
+          else
+            echo "Error: MVC interface failed to render the expected chicken."
+            exit 1
+          fi
+
+          -name: Tear Down Application Mesh and Logs
+          if: always()
+          run: |
+          docker compose logs api-service > api-container-debug.log
+          docker compose logs chick-db-service > db-container-debug.log
+          docker compose logs mvc-service > mvc-container-debug.log
+          docker compose down --volumes
+
+          #JOB 4: Automated continuos  delivery task gated behind previous validation approvals
+          cd-deployment:
+            name: 🚀 Production Cloud development
+            runs-on: ubuntu-latest
+            needs: integration-testing
+            if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+            environment: Production
+         
+            steps:
+              - name: Execute Server Infrastructure Sync
+                run: |
+                  echo "All automated tests passed cleanly. Initiating production handshakke script..."
+                
+
+           

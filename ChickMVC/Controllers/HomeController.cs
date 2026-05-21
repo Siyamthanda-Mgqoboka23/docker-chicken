@@ -15,17 +15,18 @@ namespace ChickMVC.Controllers
     }
 
     public async Task<IActionResult> Index()
-        {
-            try
-            {
-                var response = await _httpClient.GetStringAsync("http://localhost:5000/api/egg/GetMeEggs");
-                ViewBag.Chicken = response;
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Chicken = $"Error: {ex.Message}";
-            } return View();
+    {
+        try {
+            var response = await _httpClient.GetStringAsync("http://localhost:5232/api/chickens");
+            ViewBag.Chickens = response;
         }
+        catch (Exception ex)
+        {
+            // Handle error (e.g., log it)
+            ViewBag.Chickens = $"Error fetching chickens: {ex.Message}";
+        }
+        return View();
+    }
 
         public IActionResult Privacy()
         {
