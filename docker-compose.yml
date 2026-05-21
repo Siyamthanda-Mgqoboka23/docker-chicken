@@ -30,7 +30,7 @@ services:
     container_name: chickenmvc-local
     build:
       context: .
-      dockerfile: ChickenMVC/Dockerfile
+      dockerfile: ChickMVC/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
     depends_on:

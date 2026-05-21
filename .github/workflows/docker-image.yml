@@ -54,7 +54,8 @@ jobs:
           cache-dependency-path: '**/*.csproj'
 
       - name: Build Application Containers
-        run: docker compose build
+        run: docker compose -f docker-compose.yml build
+        working-directory: ${{ github.workspace }}
 
   # JOB 3: Spins up container layout and evaluates cross-dependency integrations
   integration-testing:
@@ -74,7 +75,8 @@ jobs:
           cache-dependency-path: '**/*.csproj'
 
       - name: Build and Launch Application Mesh
-        run: docker compose up --build -d
+        run: docker compose -f docker-compose.yml up --build -d
+        working-directory: ${{ github.workspace }}
 
       - name: Grace Period for Database Boot
         run: |
