@@ -92,10 +92,26 @@ jobs:
       - name: Integration Step 1 - Seed Data via API
         run: |
           echo "Posting a new chicken payload to the database..."
-          curl -X POST http://localhost:5231/api/Chicken \
+          API_RESPONSE=$(curl -sS -w "\nHTTP_STATUS:%{http_code}" -X POST http://localhost:5231/api/Chicken \
             -H "Content-Type: application/json" \
-            -d '{"name": "Cluck Norris", "breed": "Rhode Island Red"}' \
-            --fail --verbose
+            -d '{"name": "Cluck Norris", "breed": "Rhode Island Red", "age": 2, "eggProduction": 3.75, "isPregnant": false, "lastVetCheck": "2026-05-01"}')
+
+          echo "$API_RESPONSE"
+          if echo "$API_RESPONSE" | grep -q "HTTP_STATUS:201"; then
+            echo "Chicken created successfully."
+          else
+            echo "ERROR: API POST failed. Dumping logs for debugging."
+            docker compose -f docker-compose.yml logs chickenapi
+            exit 1
+          fi
+
+      - name: Integration Step 1b - Capture API Logs on Failure
+        if: failure()
+        run: |
+          echo "=== Full API Container Logs ==="
+          docker compose -f docker-compose.yml logs chickenapi
+          echo "=== Database Container Logs ==="
+          docker compose -f docker-compose.yml logs chicken-db-service
 
       - name: Integration Step 2 - Verify Front-End MVC Data Rendering
         run: |
