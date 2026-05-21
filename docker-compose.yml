@@ -1,0 +1,48 @@
+services:
+  chicken-db-service:
+    container_name: chicken-db
+    build:
+      context: .
+      dockerfile: ChickDB/Dockerfile
+    ports:
+      - "1433:1433"
+    volumes:
+      - db_data:/var/opt/mssql
+    networks:
+      - chick-network
+
+  chickenapi:
+    container_name: chickenapi-local
+    build:
+      context: .
+      dockerfile: ChickenAPI/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      SQL_CONNECTION_STRING: "Server=chicken-db;Database=Farm;Trusted_Connection=false;MultipleActiveResultSets=true;Encrypt=false;user Id=sa;password=Password1!"
+    ports:
+      - "5231:8080"
+    depends_on:
+      - chicken-db-service
+    networks:
+      - chick-network
+
+  chickenmvc:
+    container_name: chickenmvc-local
+    build:
+      context: .
+      dockerfile: ChickenMVC/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    depends_on:
+      - chickenapi
+    ports:
+      - "5178:8080"
+    networks:
+      - chick-network
+
+networks:
+  chick-network:
+    driver: bridge
+
+volumes:
+  db_data:
